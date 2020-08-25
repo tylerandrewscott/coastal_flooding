@@ -1,0 +1,61 @@
+
+R version 4.0.0 (2020-04-24) -- "Arbor Day"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> require(data.table)
+Loading required package: data.table
+> fls = list.files('output/coastal_city_by_day/',recursive = T,full.names = T)
+> require(stringr)
+Loading required package: stringr
+> aggregate_sets = list()
+> require(doParallel)
+Loading required package: doParallel
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+> require(parallel)
+> cl = makeCluster(4)
+> registerDoParallel(cl)
+> 
+> parallel::clusterEvalQ(cl,require(data.table))
+[[1]]
+[1] TRUE
+
+[[2]]
+[1] TRUE
+
+[[3]]
+[1] TRUE
+
+[[4]]
+[1] TRUE
+
+> 
+> file = 'output/flood_tweets_by_city_hour.csv'
+> 
+> foreach(i = seq_along(fls)) %dopar% {
++     temp = fread(fls[i])
++     temp = temp[Probability_Flooding_V2>0.5,]
++     temp = temp[,list(.N),by=.(GEOID,place.name,year,month,day,hour)]
++     setnames(temp,c('N'),c('Flooding_Tweets_p.5'))
++     if(!file.exists(file)){fwrite(temp,file)}
++     else{fwrite(temp,file,append = T)}
++ }
+Error in unserialize(socklist[[n]]) : error reading from connection
+Calls: %dopar% ... recvOneData -> recvOneData.SOCKcluster -> unserialize
+Execution halted
